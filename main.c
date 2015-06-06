@@ -96,7 +96,7 @@ void TLC59025_DisplayNumber(const int16_t number) {
 int main(void) {
   TLC59025_Init();
 
-  TLC59025_DisplayString("1-");
+  TLC59025_DisplayString("1-37");
   _delay_ms(1000);
 
   for (;;) {
