@@ -62,7 +62,7 @@ TARGET_ARCH = -mmcu=$(DEVICE)
 CFLAGS = -std=gnu99 -Wall -Wextra -Werror -Winline -mint8 -O3
 CPPFLAGS = -DF_CPU=$(CLOCK) -D__DELAY_BACKWARD_COMPATIBLE__ $(TLC59025_DEFINES)
 LDFLAGS = -lc -lm
-OBJECTS = main.o
+OBJECTS = main.o tlc59025.o
 PROGRAMMER = -c avrispmkII -P usb
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 

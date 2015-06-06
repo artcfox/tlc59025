@@ -34,105 +34,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-// These options are not configurable because they rely on specific hardware
-// features of the ATmega328P that are only available on specific pins.
-#if (TLC59025_SPI_MODE == 0)
-#define SDI_DDR DDRB
-#define SDI_PORT PORTB
-#define SDI_PIN PB3
-
-#define CLK_DDR DDRB
-#define CLK_PORT PORTB
-#define CLK_PIN PB5
-#elif (TLC59025_SPI_MODE == 1)
-#define SDI_DDR DDRD
-#define SDI_PORT PORTD
-#define SDI_PIN PD1
-
-#define CLK_DDR DDRD
-#define CLK_PORT PORTD
-#define CLK_PIN PD4
-#elif (TLC59025_SPI_MODE == 2)
-#define SDI_DDR DDRB
-#define SDI_PORT PORTB
-#define SDI_PIN PB1
-
-#define CLK_DDR DDRB
-#define CLK_PORT PORTB
-#define CLK_PIN PB2
-#endif // TLC59025_SPI_MODE
-
-#define setOutput(ddr, pin) ((ddr) |= (1 << (pin)))
-#define setLow(port, pin) ((port) &= ~(1 << (pin)))
-#define setHigh(port, pin) ((port) |= (1 << (pin)))
-#define getValue(port, pin) ((port) & (1 << (pin)))
-#define togglePin(input, pin) ((input) = (1 << (pin)))
-#define pulse(port, pin) do {                       \
-                           setHigh((port), (pin));  \
-                           setLow((port), (pin));   \
-                         } while (0)
-
-// Define a macro for SPI Transmit
-#if (TLC59025_SPI_MODE == 0)
-#define TLC59025_TX(data) do {                              \
-                           SPDR = (data);                  \
-                           while (!(SPSR & (1 << SPIF)));  \
-                         } while (0)
-#elif (TLC59025_SPI_MODE == 1)
-#define TLC59025_TX(data) do {                                 \
-                           while (!(UCSR0A & (1 << UDRE0)));  \
-                           UDR0 = (data);                     \
-                         } while (0)
-#elif (TLC59025_SPI_MODE == 2)
-#define TLC59025_TX(data) \
-do {                                                                         \
-  USIDR = (data);                                                            \
-  uint8_t lo = (1 << USIWM0) | (0 << USICS0) | (1 << USITC);                 \
-  uint8_t hi = (1 << USIWM0) | (0 << USICS0) | (1 << USITC) | (1 << USICLK); \
-  USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
-  USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
-  USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
-  USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
- } while (0)
-#endif // TLC59025_SPI_MODE
-
-void TLC59025_Init(void) {
-  setOutput(CLK_DDR, CLK_PIN);
-  setLow(CLK_PORT, CLK_PIN);
-
-  setOutput(LE_DDR, LE_PIN);
-  setLow(LE_PORT, LE_PIN);
-
-  // setHigh called first to ensure OE doesn't briefly go low
-  setHigh(OE_PORT, OE_PIN);
-  setOutput(OE_DDR, OE_PIN);
-
-  setOutput(SDI_DDR, SDI_PIN);
-
-#if (TLC59025_SPI_MODE == 0)
-#if (TLC59025_PB2_UNMAPPED == 1)
-  setOutput(PORTB, PB2); // PB2 must be an output to remain in SPI Master Mode
-#endif
-#elif (TLC59025_SPI_MODE == 2)
-  setLow(SDI_PORT, SDI_PIN); // since USI only toggles, start in known state
-#endif // TLC59025_SPI_MODE
-
-#if (TLC59025_SPI_MODE == 0)
-  // Enable SPI, Master, set clock rate fck/2
-  SPCR = (1 << SPE) | (1 << MSTR);
-  SPSR = (1 << SPI2X);
-#elif (TLC59025_SPI_MODE == 1)
-  // Baud rate must be set to 0 prior to enabling the USART as SPI
-  // master, to ensure proper initialization of the XCK line.
-  UBRR0 = 0;
-  // Set USART to Master SPI mode.
-  UCSR0C = (1 << UMSEL01) | (1 << UMSEL00);
-  // Enable TX only
-  UCSR0B = (1 << TXEN0);
-  // Set baud rate. Must be set _after_ enabling the transmitter.
-  UBRR0 = 0;
-#endif // TLC59025_SPI_MODE
-}
+#include "tlc59025.h"
 
 uint8_t digits[] = {0b00111111,  // 0
                     0b00000110,  // 1
@@ -194,7 +96,7 @@ void TLC59025_DisplayNumber(const int16_t number) {
 int main(void) {
   TLC59025_Init();
 
-  TLC59025_DisplayString("1-37");
+  TLC59025_DisplayString("1-");
   _delay_ms(1000);
 
   for (;;) {
