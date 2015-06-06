@@ -146,8 +146,22 @@ uint8_t digits[] = {0b00111111,  // 0
                     0b01101111,  // 9
                     0b01000000}; // -
 
+// This function assumes buffer contains 4 characters
+void TLC59025_DisplayString(const char *buffer) {
+  for (uint8_t d = 4; d != 0; d--) {
+    if (buffer[d - 1] >= '0' && buffer[d - 1] <= '9')
+      TLC59025_TX(digits[buffer[d - 1] - '0']);
+    else if (buffer[d - 1] == '-')
+      TLC59025_TX(digits[10]);
+    else
+      TLC59025_TX(0x00);
+  }
+  pulse(LE_PORT, LE_PIN);
+  setLow(OE_PORT, OE_PIN);
+}
+
 /* itoar:  convert n to characters in s, reversed */
-void itoar(int32_t n, char s[])
+static void itoar(int32_t n, char s[])
 {
   int32_t i, sign;
  
@@ -162,12 +176,14 @@ void itoar(int32_t n, char s[])
   s[i] = '\0';
 }
 
-void TLC59025_DisplayNumber(const uint16_t number) {
-  char buf[5] = {0};
-  itoar(number, buf);
+void TLC59025_DisplayNumber(const int16_t number) {
+  char buffer[12] = {0};
+  itoar(number, buffer);
   for (uint8_t d = 0; d < 4; ++d) {
-    if (buf[d] >= '0' && buf[d] <= '9')
-      TLC59025_TX(digits[buf[d] - '0']);
+    if (buffer[d] >= '0' && buffer[d] <= '9')
+      TLC59025_TX(digits[buffer[d] - '0']);
+    else if (buffer[d] == '-')
+      TLC59025_TX(digits[10]);
     else
       TLC59025_TX(0x00);
   }
@@ -178,10 +194,13 @@ void TLC59025_DisplayNumber(const uint16_t number) {
 int main(void) {
   TLC59025_Init();
 
+  TLC59025_DisplayString("1-37");
+  _delay_ms(1000);
+
   for (;;) {
-    for (uint16_t i = 0; i < 10000; ++i) {
+    for (int16_t i = -100; i < 10000; ++i) {
       TLC59025_DisplayNumber(i);
-      _delay_ms(25);
+      _delay_ms(250);
     }
   }
   /*
