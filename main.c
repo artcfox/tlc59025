@@ -35,7 +35,7 @@
 #include <util/delay.h>
 
 #include "tlc59025.h"
-#include "tlc59025+based+display+module.h"
+#include "tlc59025+display_module.h"
 
 int main(void) {
   TLC59025_Init();

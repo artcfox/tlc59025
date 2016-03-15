@@ -1,8 +1,8 @@
 /*
 
-  tlc59025+based+display+module.h
+  tlc59025+display_module.h
 
-  Copyright 2015 Matthew T. Pandina. All rights reserved.
+  Copyright 2015-2016 Matthew T. Pandina. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -34,30 +34,31 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 
 #include "tlc59025.h"
 
 #define DIGITS_IN_DISPLAY 4
 
-uint8_t digits[] = {0b00111111,  // 0
-                    0b00000110,  // 1
-                    0b01011011,  // 2
-                    0b01001111,  // 3
-                    0b01100110,  // 4
-                    0b01101101,  // 5
-                    0b01111101,  // 6
-                    0b00000111,  // 7
-                    0b01111111,  // 8
-                    0b01101111,  // 9
-                    0b01000000}; // -
+const uint8_t digits[] PROGMEM = {0b00111111,  // 0
+                                  0b00000110,  // 1
+                                  0b01011011,  // 2
+                                  0b01001111,  // 3
+                                  0b01100110,  // 4
+                                  0b01101101,  // 5
+                                  0b01111101,  // 6
+                                  0b00000111,  // 7
+                                  0b01111111,  // 8
+                                  0b01101111,  // 9
+                                  0b01000000}; // -
 
 // This function assumes buffer contains DIGITS_IN_DISPLAY characters
 static inline void TLC59025_DisplayString(const char *buffer) {
   for (uint8_t d = DIGITS_IN_DISPLAY; d != 0; d--) {
     if (buffer[d - 1] >= '0' && buffer[d - 1] <= '9')
-      TLC59025_TX(digits[buffer[d - 1] - '0']);
+      TLC59025_TX(pgm_read_byte(&digits[buffer[d - 1] - '0']));
     else if (buffer[d - 1] == '-')
-      TLC59025_TX(digits[10]);
+      TLC59025_TX(pgm_read_byte(&digits[10]));
     else
       TLC59025_TX(0x00);
   }
@@ -88,9 +89,9 @@ static inline void TLC59025_DisplayNumber(const int16_t number) {
   itoar(number, buffer);
   for (uint8_t d = 0; d < DIGITS_IN_DISPLAY; ++d) {
     if (buffer[d] >= '0' && buffer[d] <= '9')
-      TLC59025_TX(digits[buffer[d] - '0']);
+      TLC59025_TX(pgm_read_byte(&digits[buffer[d] - '0']));
     else if (buffer[d] == '-')
-      TLC59025_TX(digits[10]);
+      TLC59025_TX(pgm_read_byte(&digits[10]));
     else
       TLC59025_TX(0x00);
   }
