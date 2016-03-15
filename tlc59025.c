@@ -1,8 +1,8 @@
 /*
 
-  tlc59025.h
+  tlc59025.c
 
-  Copyright 2015 Matthew T. Pandina. All rights reserved.
+  Copyright 2015-2016 Matthew T. Pandina. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions

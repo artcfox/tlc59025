@@ -2,7 +2,7 @@
 
   tlc59025.h
 
-  Copyright 2015 Matthew T. Pandina. All rights reserved.
+  Copyright 2015-2016 Matthew T. Pandina. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include <util/delay_basic.h>
 
 // These options are not configurable because they rely on specific hardware
 // features of the ATmega328P that are only available on specific pins.
@@ -76,14 +77,18 @@
 // Define a macro for SPI Transmit
 #if (TLC59025_SPI_MODE == 0)
 #define TLC59025_TX(data) do {                              \
-                           SPDR = (data);                  \
-                           while (!(SPSR & (1 << SPIF)));  \
-                         } while (0)
+                            SPDR = (data);                  \
+                            while (!(SPSR & (1 << SPIF)));  \
+                          } while (0)
+#define TLC59025_WaitUntilTransmitComplete() do {} while (0)
 #elif (TLC59025_SPI_MODE == 1)
 #define TLC59025_TX(data) do {                                 \
-                           while (!(UCSR0A & (1 << UDRE0)));  \
-                           UDR0 = (data);                     \
-                         } while (0)
+                            while (!(UCSR0A & (1 << UDRE0)));  \
+                            UDR0 = (data);                     \
+                          } while (0)
+#define TLC59025_WaitUntilTransmitComplete() do {                 \
+                                               _delay_loop_1(12); \
+                                             } while (0)
 #elif (TLC59025_SPI_MODE == 2)
 #define TLC59025_TX(data) \
 do {                                                                         \
@@ -95,6 +100,7 @@ do {                                                                         \
   USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
   USICR = lo; USICR = hi; USICR = lo; USICR = hi;                            \
  } while (0)
+#define TLC59025_WaitUntilTransmitComplete() do {} while (0)
 #endif // TLC59025_SPI_MODE
 
 void TLC59025_Init(void);
